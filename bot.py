@@ -15,8 +15,7 @@ import sys
 
 import aiosqlite
 import discord
-import DiscordLevelingSystem
-from DiscordLevelingSystem import DiscordLevelingSystem, RoleAward, LevelUpAnnouncement
+from discordLevelingSystem import DiscordLevelingSystem, RoleAward, LevelUpAnnouncement
 from discord.ext import commands, tasks
 from discord.ext.commands import Context
 from dotenv import load_dotenv
@@ -312,9 +311,12 @@ announcement = LevelUpAnnouncement(f'{LevelUpAnnouncement.Member.mention} just l
 lvl = DiscordLevelingSystem(awards=my_awards, level_up_announcement=announcement)
 lvl.connect_to_database_file(f"{os.path.realpath(os.path.dirname(__file__))}/DiscordLevelingSystem.db")
 
+
+
+bot = DiscordBot()
+
 @bot.event
 async def on_message(message):
     await lvl.award_xp(amount=15, message=message)
 
-bot = DiscordBot()
 bot.run(os.getenv("TOKEN"))
