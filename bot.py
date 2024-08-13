@@ -15,6 +15,8 @@ import sys
 
 import aiosqlite
 import discord
+import DiscordLevelingSystem
+from DiscordLevelingSystem import DiscordLevelingSystem, RoleAward, LevelUpAnnouncement
 from discord.ext import commands, tasks
 from discord.ext.commands import Context
 from dotenv import load_dotenv
@@ -26,6 +28,11 @@ if not os.path.isfile(f"{os.path.realpath(os.path.dirname(__file__))}/config.jso
 else:
     with open(f"{os.path.realpath(os.path.dirname(__file__))}/config.json") as file:
         config = json.load(file)
+
+if not os.path.isfile(f"{os.path.realpath(os.path.dirname(__file__))}/DiscordLevelingSystem.db"):
+    DiscordLevelingSystem.create_database_file(os.path.realpath(os.path.dirname(__file__)))
+
+
 
 """	
 Setup bot intents (events restrictions)
@@ -60,7 +67,7 @@ intents.message_content = True
 intents.presences = True
 """
 
-intents = discord.Intents.default()
+intents = discord.Intents(messages=True, guilds=True, members=True)
 
 """
 Uncomment this if you want to use prefix (normal) commands.
@@ -288,6 +295,26 @@ class DiscordBot(commands.Bot):
 
 
 load_dotenv()
+
+main_guild_id = 575708830244274187
+
+my_awards = {
+    main_guild_id : [
+        RoleAward(role_id=1179504014543556639, level_requirement=1, role_name='Rookie'),
+        RoleAward(role_id=1273051976531185684, level_requirement=2, role_name='Associate'),
+        RoleAward(role_id=1273052018545528912, level_requirement=3, role_name='Legend')
+    ]
+}
+
+announcement = LevelUpAnnouncement(f'{LevelUpAnnouncement.Member.mention} just leveled up to level {LevelUpAnnouncement.LEVEL} 😎')
+
+# DiscordLevelingSystem.create_database_file(r'C:\Users\Defxult\Documents') database file already created
+lvl = DiscordLevelingSystem(awards=my_awards, level_up_announcement=announcement)
+lvl.connect_to_database_file(f"{os.path.realpath(os.path.dirname(__file__))}/DiscordLevelingSystem.db")
+
+@bot.event
+async def on_message(message):
+    await lvl.award_xp(amount=15, message=message)
 
 bot = DiscordBot()
 bot.run(os.getenv("TOKEN"))
